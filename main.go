@@ -185,8 +185,8 @@ func main() {
 	r.HandleFunc("/create", createPostHandler).Methods("POST")
 	r.HandleFunc("/article/{link}", viewHandler).Methods("GET")
 	r.HandleFunc("/delete/{link}", deleteHandler).Methods("GET")
-	r.HandleFunc("/edit/{link}", createHandler).Methods("GET")
-	r.HandleFunc("/edit/{link}", createPostHandler).Methods("POST")
+	r.HandleFunc("/edit/{link}", editHandler).Methods("GET")
+	r.HandleFunc("/edit/{link}", editPostHandler).Methods("POST")
 
 	http.Handle("/", r)
 	fmt.Printf("Running %s on %s:%s", GOW_TITLE, Cfg.Host, Cfg.Port)
@@ -255,16 +255,10 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	MyHtml := GOW_HEADER + `
-			<nav style="margin-left:10px;">
-				<ul>
-					<li>
-						<a href="/edit/` + article.Link + `">Edit article</a>
-					</li>
-					<li>
-						<a href="/delete/` + article.Link + `">Delete article</a>
-					</li>
-				</ul>
-			</nav>
+			<div id="go-back-link">
+				<a href="/edit/` + article.Link + `">Edit article</a>
+				<a href="/delete/` + article.Link + `">Delete article</a>
+			</div>
 			<h1>
 				` + article.Title + `
 			</h1>
@@ -392,9 +386,7 @@ func editHandler(w http.ResponseWriter, r *http.Request) {
 	cfbdec := cipher.NewCFBDecrypter(c, commonIV)
 	plaintextCopy := make([]byte, article.PTL)
 	cfbdec.XORKeyStream(plaintextCopy, article.Content)
-	unsafe := blackfriday.MarkdownCommon(plaintextCopy)
-	html := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
-	stringHtml := string(html)
+	stringHtml := string(plaintextCopy)
 
 	MyHtml := GOW_HEADER
 
