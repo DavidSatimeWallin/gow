@@ -24,6 +24,7 @@ import (
 
 type (
 	config struct {
+		Host   string
 		Port   string
 		Bucket string
 		Key    string
@@ -151,6 +152,7 @@ var (
 )
 
 func init() {
+	flag.StringVar(&Cfg.Host, "host", "0.0.0.0", "the host on which to host the web interface")
 	flag.StringVar(&Cfg.Port, "port", "9090", "the port you want to run GOW on")
 	flag.StringVar(&Cfg.Bucket, "bucket", "./gow.bucket", "the folder in which data should be stored")
 	flag.StringVar(&Cfg.Key, "key", "d51b2bf666420e87ab91d08ef07f2e08", "the secret key you want to use for encryption")
@@ -174,10 +176,11 @@ func main() {
 	r.HandleFunc("/delete/{link}", deleteHandler).Methods("GET")
 
 	http.Handle("/", r)
-	err := http.ListenAndServe(fmt.Sprintf(":%s", Cfg.Port), nil)
+	err := http.ListenAndServe(fmt.Sprintf("%s:%s", Cfg.Host, Cfg.Port), nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
+	fmt.Printf("Running %s on %s:%s", GOW_TITLE, Cfg.Host, Cfg.Port)
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
