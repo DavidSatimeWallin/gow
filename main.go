@@ -185,6 +185,8 @@ func main() {
 	r.HandleFunc("/create", createPostHandler).Methods("POST")
 	r.HandleFunc("/article/{link}", viewHandler).Methods("GET")
 	r.HandleFunc("/delete/{link}", deleteHandler).Methods("GET")
+	r.HandleFunc("/edit/{link}", createHandler).Methods("GET")
+	r.HandleFunc("/edit/{link}", createPostHandler).Methods("POST")
 
 	http.Handle("/", r)
 	fmt.Printf("Running %s on %s:%s", GOW_TITLE, Cfg.Host, Cfg.Port)
@@ -196,7 +198,13 @@ func main() {
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	t := template.New("indexTpl")
-	MyHtml := GOW_HEADER + "hej" + GOW_FOOTER
+	MyHtml := GOW_HEADER
+	MyHtml = MyHtml + `
+		<h1>Welcome to ` + GOW_TITLE + `</h1>
+		<p>` + GOW_TITLE + ` is a small standalone wiki-system mean for lokal portable documentation.</p>
+		<p>When starting the application you supply a key which is your personal encryption key. All article content (not the title) is then encrypted using this key and thus only you (or the ones you hand the key to) may access the data.</p>
+	`
+	MyHtml = MyHtml + GOW_FOOTER
 	t, _ = t.Parse(MyHtml)
 	t.Execute(w, nil)
 }
@@ -247,6 +255,16 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	MyHtml := GOW_HEADER + `
+			<nav style="margin-left:10px;">
+				<ul>
+					<li>
+						<a href="/edit/` + article.Link + `">Edit article</a>
+					</li>
+					<li>
+						<a href="/delete/` + article.Link + `">Delete article</a>
+					</li>
+				</ul>
+			</nav>
 			<h1>
 				` + article.Title + `
 			</h1>
@@ -254,7 +272,6 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 			<p>
 				` + stringHtml + `
 			</p>
-			<a href="/delete/` + article.Link + `" style="float:right;position:absolute;bottom:10px;left:20px;">Delete article</a>
 		` + GOW_FOOTER
 	t, _ = t.Parse(MyHtml)
 	t.Execute(w, nil)
@@ -280,10 +297,7 @@ func listAllHandler(w http.ResponseWriter, r *http.Request) {
 		tplArticles []string
 		articles    []article
 	)
-	records, err := DB.ReadAll("articles")
-	if err != nil {
-		fmt.Println("Error", err)
-	}
+	records, _ := DB.ReadAll("articles")
 	for _, v := range records {
 		article := article{}
 		if err := json.Unmarshal([]byte(v), &article); err != nil {
@@ -365,4 +379,68 @@ func createHandler(w http.ResponseWriter, r *http.Request) {
 	  ` + GOW_FOOTER
 	t, _ = t.Parse(MyHtml)
 	t.Execute(w, nil)
+}
+
+func editHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	link := vars["link"]
+	article := article{}
+	if err := DB.Read("articles", link, &article); err != nil {
+		fmt.Println("Error", err)
+	}
+	t := template.New("editTpl")
+	cfbdec := cipher.NewCFBDecrypter(c, commonIV)
+	plaintextCopy := make([]byte, article.PTL)
+	cfbdec.XORKeyStream(plaintextCopy, article.Content)
+	unsafe := blackfriday.MarkdownCommon(plaintextCopy)
+	html := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
+	stringHtml := string(html)
+
+	MyHtml := GOW_HEADER
+
+	MyHtml = MyHtml + `<div id="go-back-link">
+			<a href="/article/` + link + `">Abort</a>
+		</div>
+	  <form name="edit" method="POST" action="">
+  		<p>
+			<input type="text" name="title" style="width:90%;padding:5px;" value="` + article.Title + `" placeholder="Title..." pattern="[a-zA-Z0-9åäöÅÄÖ,_.-/\:+?! ]{2,250}" />
+		</p>
+		<p>
+			<textarea name="content" placeholder="Article content..." style="width:90%; height:350px; padding:5px;">` + stringHtml + `</textarea>
+		</p>
+		<p>
+			<button type="submit" name="submit" style="background:#53DF83;padding:6px 12px;border:0;">Save</button>
+		</p>
+	  </form>
+	  ` + GOW_FOOTER
+	t, _ = t.Parse(MyHtml)
+	t.Execute(w, nil)
+}
+
+func editPostHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	link := vars["link"]
+	title := base64.StdEncoding.EncodeToString([]byte(r.FormValue("title")))
+
+	if link != title {
+		if err := DB.Delete("articles", link); err != nil {
+			fmt.Println("Error", err)
+		}
+		link = title
+	}
+
+	cfb := cipher.NewCFBEncrypter(c, commonIV)
+	ciphertext := make([]byte, len(r.FormValue("content")))
+	cfb.XORKeyStream(ciphertext, []byte(r.FormValue("content")))
+	article := article{
+		Link:    link,
+		Title:   r.FormValue("title"),
+		Content: ciphertext,
+		Created: time.Now().String(),
+		PTL:     len(r.FormValue("content")),
+	}
+	if err := DB.Write("articles", title, article); err != nil {
+		fmt.Println("Error", err)
+	}
+	http.Redirect(w, r, fmt.Sprintf("/article/%s", article.Link), http.StatusMovedPermanently)
 }
