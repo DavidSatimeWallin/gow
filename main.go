@@ -157,6 +157,17 @@ func init() {
 	flag.StringVar(&Cfg.Bucket, "bucket", "./gow.bucket", "the folder in which data should be stored")
 	flag.StringVar(&Cfg.Key, "key", "d51b2bf666420e87ab91d08ef07f2e08", "the secret key you want to use for encryption")
 	flag.Parse()
+	keyLength := len(Cfg.Key)
+	if keyLength != 32 {
+		fmt.Println("The security key must be 32 characters long")
+		if keyLength > 32 {
+			fmt.Printf("You gave %d too many characters\n", (keyLength - 32))
+		}
+		if keyLength < 32 {
+			fmt.Printf("You gave %d too few characters\n", (32 - keyLength))
+		}
+		os.Exit(1)
+	}
 	DB, _ = scribble.New(Cfg.Bucket, nil)
 	commonIV = []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
 	c, err = aes.NewCipher([]byte(Cfg.Key))
@@ -176,11 +187,11 @@ func main() {
 	r.HandleFunc("/delete/{link}", deleteHandler).Methods("GET")
 
 	http.Handle("/", r)
+	fmt.Printf("Running %s on %s:%s", GOW_TITLE, Cfg.Host, Cfg.Port)
 	err := http.ListenAndServe(fmt.Sprintf("%s:%s", Cfg.Host, Cfg.Port), nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
-	fmt.Printf("Running %s on %s:%s", GOW_TITLE, Cfg.Host, Cfg.Port)
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
