@@ -54,7 +54,8 @@ const (
 	nav ul li { display:inline; margin:0 10px; }
 	ul.tools {display: none;list-style: none;box-shadow: 0px 0px 4px rgba(0,0,0,.5);border: solid 1px #000;position: absolute;background: #fff;padding:0;}
 	ul.tools li {display: inline-block;height: 20px;border: solid 1px #000;margin: 5px;padding: 5px 10px;cursor: pointer;}
-	.go-back-link a {background-color:#EEEEEE;padding:5px 12px;font-weight:500;font: 13.3333px Arial;color:#3F3F3F;border:1px solid #dedede;display:inline-block;}
+	.go-back-link {display:inline-block;}
+	.go-back-link a {background-color:#EEEEEE;padding:5px 12px;font-weight:500;font: 13.3333px Arial;color:#3F3F3F;border:1px solid #dedede;}
 	</style>
 	<body>
 	<header style="border-bottom:1px solid #EEEEEE;height:30px;padding-top:10px;">
