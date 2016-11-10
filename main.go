@@ -54,7 +54,7 @@ const (
 	nav ul li { display:inline; margin:0 10px; }
 	ul.tools {display: none;list-style: none;box-shadow: 0px 0px 4px rgba(0,0,0,.5);border: solid 1px #000;position: absolute;background: #fff;padding:0;}
 	ul.tools li {display: inline-block;height: 20px;border: solid 1px #000;margin: 5px;padding: 5px 10px;cursor: pointer;}
-	#go-back-link a {background-color:#EEEEEE;padding:5px 12px;font-weight:500;font: 13.3333px Arial;color:#3F3F3F;border:1px solid #dedede;}
+	.go-back-link a {background-color:#EEEEEE;padding:5px 12px;font-weight:500;font: 13.3333px Arial;color:#3F3F3F;border:1px solid #dedede;display:inline-block;}
 	</style>
 	<body>
 	<header style="border-bottom:1px solid #EEEEEE;height:30px;padding-top:10px;">
@@ -65,10 +65,14 @@ const (
 	<nav>
 		<ul>
 			<li>
-				<a href="/create">Create new article</a>
+				<div class="go-back-link">
+					<a href="/create">Create new article</a>
+				</div>
 			</li>
 			 <li>
-				 <a href="/list">List articles</a>
+				<div class="go-back-link">
+					<a href="/list">List articles</a>
+				</div>
 			 </li>
 		</ul>
 	</nav>
@@ -255,7 +259,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	MyHtml := GOW_HEADER + `
-			<div id="go-back-link">
+			<div class="go-back-link">
 				<a href="/edit/` + article.Link + `">Edit article</a>
 				<a href="/delete/` + article.Link + `">Delete article</a>
 			</div>
@@ -352,7 +356,7 @@ func createHandler(w http.ResponseWriter, r *http.Request) {
 		referer := r.Referer()
 		currURL := getCurrURL(r)
 		if referer != currURL {
-			MyHtml = MyHtml + `<div id="go-back-link">
+			MyHtml = MyHtml + `<div class="go-back-link">
 			<a href="` + referer + `">Go back</a>
 		</div>`
 		}
@@ -390,7 +394,7 @@ func editHandler(w http.ResponseWriter, r *http.Request) {
 
 	MyHtml := GOW_HEADER
 
-	MyHtml = MyHtml + `<div id="go-back-link">
+	MyHtml = MyHtml + `<div class="go-back-link">
 			<a href="/article/` + link + `">Abort</a>
 		</div>
 	  <form name="edit" method="POST" action="">
