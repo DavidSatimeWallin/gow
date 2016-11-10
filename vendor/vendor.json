@@ -3,6 +3,18 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "kY+sLZy12wFC+JxiSWPCsMCUras=",
+			"path": "github.com/dvwallin/gow",
+			"revision": "ecc53cc2be3e5da0ee7cf7be7ce4baf8eefc32a1",
+			"revisionTime": "2016-11-10T12:13:54Z"
+		},
+		{
+			"checksumSHA1": "cZCUQVvNl3pnyOcGYNUCTXD5pjg=",
+			"path": "github.com/dvwallin/gow/Lib",
+			"revision": "ecc53cc2be3e5da0ee7cf7be7ce4baf8eefc32a1",
+			"revisionTime": "2016-11-10T12:13:54Z"
+		},
+		{
 			"checksumSHA1": "g/V4qrXjUGG9B+e3hB+4NAYJ5Gs=",
 			"path": "github.com/gorilla/context",
 			"revision": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42",
@@ -31,6 +43,12 @@
 			"path": "github.com/nanobox-io/golang-scribble",
 			"revision": "2a34006ba790dabb8104121f1fe32592c14fc000",
 			"revisionTime": "2016-03-11T23:59:00Z"
+		},
+		{
+			"checksumSHA1": "YT3GyQajD6Srpv6lovOrAPlBsE4=",
+			"path": "github.com/renstrom/fuzzysearch",
+			"revision": "2d205ac6ec17a839a94bdbfd16d2fa6c6dada2e0",
+			"revisionTime": "2016-03-31T20:48:55Z"
 		},
 		{
 			"checksumSHA1": "c7jHQZk5ZEsFR9EXsWJXkszPBZA=",

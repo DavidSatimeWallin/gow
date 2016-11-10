@@ -19,6 +19,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/microcosm-cc/bluemonday"
 	scribble "github.com/nanobox-io/golang-scribble"
+	"github.com/renstrom/fuzzysearch/fuzzy"
 	"github.com/russross/blackfriday"
 )
 
@@ -73,6 +74,11 @@ const (
 			 <li>
 				<div class="go-back-link">
 					<a href="/list">List articles</a>
+				</div>
+			 </li>
+			 <li>
+				<div class="go-back-link">
+					<a href="/search">Search articles</a>
 				</div>
 			 </li>
 		</ul>
@@ -192,6 +198,8 @@ func main() {
 	r.HandleFunc("/delete/{link}", deleteHandler).Methods("GET")
 	r.HandleFunc("/edit/{link}", editHandler).Methods("GET")
 	r.HandleFunc("/edit/{link}", editPostHandler).Methods("POST")
+	r.HandleFunc("/search", searchHandler).Methods("GET")
+	r.HandleFunc("/search", searchPostHandler).Methods("POST")
 
 	http.Handle("/", r)
 	fmt.Printf("Running %s on %s:%s", GOW_TITLE, Cfg.Host, Cfg.Port)
@@ -274,21 +282,6 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		` + GOW_FOOTER
 	t, _ = t.Parse(MyHtml)
 	t.Execute(w, nil)
-}
-
-func getAllHeaders() (articles []article) {
-	records, err := DB.ReadAll("articles")
-	if err != nil {
-		fmt.Println("Error", err)
-	}
-	for _, v := range records {
-		article := article{}
-		if err := json.Unmarshal([]byte(v), &article); err != nil {
-			fmt.Println("Error", err)
-		}
-		articles = append(articles, article)
-	}
-	return
 }
 
 func listAllHandler(w http.ResponseWriter, r *http.Request) {
@@ -440,4 +433,78 @@ func editPostHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Error", err)
 	}
 	http.Redirect(w, r, fmt.Sprintf("/article/%s", article.Link), http.StatusMovedPermanently)
+}
+
+func searchHandler(w http.ResponseWriter, r *http.Request) {
+	t := template.New("searchTpl")
+	MyHtml := GOW_HEADER
+	MyHtml = MyHtml + `
+	  <form name="search" method="POST" action="">
+  		<p>
+			<input type="text" name="search_term" style="width:80%;padding:5px;" placeholder="What are you looking for?" pattern="[a-zA-Z0-9åäöÅÄÖ,_.-/\:+?! ]{2,250}" />
+			<button type="submit" name="submit" style="background:#53DF83;padding:6px 12px;border:0;">Search</button>
+		</p>
+	  </form>
+	  ` + GOW_FOOTER
+	t, _ = t.Parse(MyHtml)
+	t.Execute(w, nil)
+}
+
+func searchPostHandler(w http.ResponseWriter, r *http.Request) {
+	searchTerm := r.FormValue("search_term")
+	headers := getAllHeaders()
+	var headerTitles []string
+	for _, v := range headers {
+		headerTitles = append(headerTitles, v.Title)
+	}
+	matches := fuzzy.RankFind(searchTerm, headerTitles)
+	t := template.New("searchTpl")
+	MyHtml := GOW_HEADER
+	MyHtml = MyHtml + `
+	  <form name="search" method="POST" action="">
+  		<p>
+			<input type="text" name="search_term" style="width:80%;padding:5px;" placeholder="What are you looking for?" pattern="[a-zA-Z0-9åäöÅÄÖ,_.-/\:+?! ]{2,250}" />
+			<button type="submit" name="submit" style="background:#53DF83;padding:6px 12px;border:0;">Search</button>
+		</p>
+	  </form>
+	  <hr />
+	  `
+	var articleList []string
+	counter := 1
+	for _, v := range matches {
+		article := getArticleByHeader(v.Target)
+		articleList = append(articleList, `<div class="article-item">
+			<h5>#`+fmt.Sprintf("%d", counter)+`. <a href="/article/`+article.Link+`">`+article.Title+`</a></h5>
+		</div>`)
+		counter++
+	}
+	MyHtml = MyHtml + strings.Join(articleList, "")
+	MyHtml = MyHtml + GOW_FOOTER
+	t, _ = t.Parse(MyHtml)
+	t.Execute(w, nil)
+}
+
+func getArticleByHeader(h string) (article article) {
+	headers := getAllHeaders()
+	for _, v := range headers {
+		if v.Title == h {
+			article = v
+		}
+	}
+	return
+}
+
+func getAllHeaders() (articles []article) {
+	records, err := DB.ReadAll("articles")
+	if err != nil {
+		fmt.Println("Error", err)
+	}
+	for _, v := range records {
+		article := article{}
+		if err := json.Unmarshal([]byte(v), &article); err != nil {
+			fmt.Println("Error", err)
+		}
+		articles = append(articles, article)
+	}
+	return
 }
