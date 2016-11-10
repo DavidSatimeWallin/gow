@@ -457,7 +457,7 @@ func searchPostHandler(w http.ResponseWriter, r *http.Request) {
 	for _, v := range headers {
 		headerTitles = append(headerTitles, v.Title)
 	}
-	matches := fuzzy.RankFind(searchTerm, headerTitles)
+	matches := fuzzy.RankFindFold(searchTerm, headerTitles)
 	t := template.New("searchTpl")
 	MyHtml := GOW_HEADER
 	MyHtml = MyHtml + `
