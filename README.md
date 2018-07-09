@@ -12,10 +12,10 @@ To see a quick demo visit https://www.useloom.com/share/1a9c0721485e42ecad2606dc
 
 ## Roadmap
 
- [ ] Remote syncing of the bucket
- [ ] Connect to other peoples wikis
- [ ] Download an archive
- [ ] Better markdown support
+ * [ ] Remote syncing of the bucket
+ * [ ] Connect to other peoples wikis
+ * [ ] Download an archive
+ * [ ] Better markdown support
  
 ## Contribute
 
