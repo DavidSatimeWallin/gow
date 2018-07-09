@@ -10,6 +10,37 @@ In the top there's a search area which uses a ranked fuzzy search. It will rank 
 
 To see a quick demo visit https://www.useloom.com/share/1a9c0721485e42ecad2606dc2d52aa4f
 
+## Install & Use
+
+*OBS! This is completely untested on windows OBS!*
+
+### Install
+
+#### Binary
+
+In the `binaries` -folder you should find compiled binaries for most platforms. Just download the one for your platform and run it. This will launch the wiki on `localhost:9090`
+
+#### Source
+
+Simply `cd` into your `$GOPATH` and type `go get github.com/dvwallin/gow` then `cd $GOPATH` and `cd github.com/dvwallin/gow` and do `go install`
+
+### Usage
+
+Running the wiki without commands will create a folder in $HOME named gow.bucket which will contain all the data. If you want the bucket located elsewhere simply append -bucket <path-to-bucket>.
+
+## Help
+
+```
+  -bucket string
+    	the folder in which data should be stored (default "./gow.bucket")
+  -host string
+    	the host on which to host the web interface (default "0.0.0.0")
+  -key string
+    	the secret key you want to use for encryption (default "d51b2bf666420e87ab91d08ef07f2e08")
+  -port string
+    	the port you want to run GOW on (default "9090")
+```
+
 ## Roadmap
 
  * [ ] Remote syncing of the bucket
