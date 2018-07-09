@@ -20,7 +20,7 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	scribble "github.com/nanobox-io/golang-scribble"
 	"github.com/renstrom/fuzzysearch/fuzzy"
-	"github.com/russross/blackfriday"
+	"gopkg.in/russross/blackfriday.v2"
 )
 
 type (
@@ -46,44 +46,55 @@ func (a articlesDescending) Less(i, j int) bool { return a[i].Title > a[j].Title
 
 const (
 	SCHEME     = "http"
-	GOW_TITLE  = "Go Wiki"
+	GOW_TITLE  = "GOW"
 	GOW_HEADER = `<!DOCTYPE html><html><head><title>` + GOW_TITLE + `</title></head>
 	<style>
-	* { color:#3F3F3F; font-family:"Lucida Sans Unicode", "Lucida Grande", sans-serif; }
-	a { color:#47D2E9; text-decoration:none; font-weight:bold; }
-	nav ul { list-style-type:none; padding:0; }
-	nav ul li { display:inline; margin:0 10px; }
-	ul.tools {display: none;list-style: none;box-shadow: 0px 0px 4px rgba(0,0,0,.5);border: solid 1px #000;position: absolute;background: #fff;padding:0;}
-	ul.tools li {display: inline-block;height: 20px;border: solid 1px #000;margin: 5px;padding: 5px 10px;cursor: pointer;}
-	.go-back-link {display:inline-block;}
-	.go-back-link a {background-color:#EEEEEE;padding:5px 12px;font-weight:500;font: 13.3333px Arial;color:#3F3F3F;border:1px solid #dedede;}
+	@import url('https://fonts.googleapis.com/css?family=Libre+Baskerville:700|Montserrat:300,500');body,html{height:100%;width:100%;margin:0;padding:0;left:0;top:0;font-size:100%}.center,.container{margin-left:auto;margin-right:auto}*{font-family:'Montserrat', sans-serif;color:#333447;line-height:1.5}h1,h2,h3,h4,h5,h6{font-family:'Libre Baskerville', serif;}h1{font-size:3.5rem}h2{font-size:2.5rem}h3{font-size:1.375rem}h4{font-size:1.125rem}h5{font-size:1rem}h6{font-size:.875rem}p{font-size:1.125rem;font-weight:200;line-height:1.8}.font-light{font-weight:300}.font-regular{font-weight:400}.font-heavy{font-weight:700}.left{text-align:left}.right{text-align:right}.center{text-align:center}.justify{text-align:justify}.container{width:90%}.row{position:relative;width:100%}.row [class^=col]{float:left;margin:.5rem 2%;min-height:.125rem}.col-1,.col-10,.col-11,.col-12,.col-2,.col-3,.col-4,.col-5,.col-6,.col-7,.col-8,.col-9{width:96%}.col-1-sm{width:4.33%}.col-2-sm{width:12.66%}.col-3-sm{width:21%}.col-4-sm{width:29.33%}.col-5-sm{width:37.66%}.col-6-sm{width:46%}.col-7-sm{width:54.33%}.col-8-sm{width:62.66%}.col-9-sm{width:71%}.col-10-sm{width:79.33%}.col-11-sm{width:87.66%}.col-12-sm{width:96%}.row::after{content:"";display:table;clear:both}.hidden-sm{display:none}@media only screen and (min-width:33.75em){.container{width:80%}}@media only screen and (min-width:45em){.col-1{width:4.33%}.col-2{width:12.66%}.col-3{width:21%}.col-4{width:29.33%}.col-5{width:37.66%}.col-6{width:46%}.col-7{width:54.33%}.col-8{width:62.66%}.col-9{width:71%}.col-10{width:79.33%}.col-11{width:87.66%}.col-12{width:96%}.hidden-sm{display:block}}@media only screen and (min-width:60em){.container{width:75%;max-width:60rem}}
+	.tools { display: none; position: absolute; list-style: none; padding: 0.8rem; background: #f4f4f4; border: 1px solid #ccc; }
+	.tools a { text-decoration: none; }
+	nav > ul { padding: 0; }
+	nav > ul > li { display: inline; }
+	.search_form > p > input[type="text"] { padding: 0.2rem; font-size: 1rem; border: 1px solid #ccc; min-width: 80%; }
+	.search_form > p > button {padding: 0.2rem; font-size: 1rem; background: #fff; border: 1px solid #ccc;}
+	.go-back-link {display:inline-block; padding: 0.2rem; font-size: 1rem;background: #f4f4f4; border: 1px solid #ccc;}
+	.go-back-link a {text-decoration: none;}
+	.row > div.no-margin { margin: 0; }
+	body { padding-top: 2rem; }
 	</style>
 	<body>
-	<header style="border-bottom:1px solid #EEEEEE;height:30px;padding-top:10px;">
-		<div style="margin: 0 10px;">
-			<a href="/">` + GOW_TITLE + `</a>
+	<div class="container">
+		<div class="row">
+			<div class="col-12 no-margin">
+				<div class="col-3">
+					<nav>
+						<ul>
+							<li>
+								<div class="go-back-link">
+									<a href="/">` + GOW_TITLE + `</a>
+								</div>
+							</li>
+							<li>
+								<div class="go-back-link">
+									<a href="/create" title="Create new article">New</a>
+								</div>
+							</li>
+						</ul>
+					</nav>
+				</div>
+				<div class="col-9">
+					<form name="search" method="POST" action="/search" class="search_form">
+						<p>
+							<input type="text" name="search_term" placeholder="Enter something to search for..." pattern="[a-zA-Z0-9åäöÅÄÖ,_.-/\:+?! ]{2,250}"/>
+							<button type="submit" name="submit">Search</button>
+						</p>
+					</form>
+				</div>
+			</div>
 		</div>
-	</header>
-	<nav>
-		<ul>
-			<li>
-				<div class="go-back-link">
-					<a href="/create">Create new article</a>
-				</div>
-			</li>
-			 <li>
-				<div class="go-back-link">
-					<a href="/list">List articles</a>
-				</div>
-			 </li>
-			 <li>
-				<div class="go-back-link">
-					<a href="/search">Search articles</a>
-				</div>
-			 </li>
-		</ul>
-	</nav>
-	<div style="padding: 10px 0;"><div style="margin: 0 10px;">`
+		<div class="row">
+		</div>
+		<div class="row">
+			<div class="col-12">`
 	GOW_FOOTER = `</div></div>
 	
 	
@@ -137,11 +148,12 @@ const (
 						var txt = getSelectionText();
 						if(selectedText != ''){
 								$('ul.tools').css({
-										'left': pageX + 5,
-										'top' : pageY - 55
+										'left': pageX,
+										'top' : pageY + 5
 								}).fadeIn(200);
 								var urlC = encodeURIComponent(txt);
 								$('#tools-create-link').attr('href', '/create?t='+urlC);
+								$('#tools-create-link').text('Click here to create new article called \"'+txt+'\"');
 						} else {
 								$('ul.tools').fadeOut(200);
 						}
@@ -191,7 +203,6 @@ func init() {
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", indexHandler)
-	r.HandleFunc("/list", listAllHandler).Methods("GET")
 	r.HandleFunc("/create", createHandler).Methods("GET")
 	r.HandleFunc("/create", createPostHandler).Methods("POST")
 	r.HandleFunc("/article/{link}", viewHandler).Methods("GET")
@@ -210,13 +221,38 @@ func main() {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
+	var (
+		tplArticles []string
+		articles    []article
+		headers = getAllHeaders()
+	)
+	records, _ := DB.ReadAll("articles")
+	for _, v := range records {
+		article := article{}
+		if err := json.Unmarshal([]byte(v), &article); err != nil {
+			fmt.Println("Error", err)
+		}
+		articles = append(articles, article)
+	}
+	sort.Sort(articlesDescending(articles))
+	for _, article := range articles {
+		tplArticles = append(tplArticles, fmt.Sprintf("<a href='/article/%s'>%s</a>", article.Link, article.Title))
+	}
+	joinedArticlesList := strings.Join(tplArticles, " - ")
 	t := template.New("indexTpl")
 	MyHtml := GOW_HEADER
-	MyHtml = MyHtml + `
+	content := `
 		<h1>Welcome to ` + GOW_TITLE + `</h1>
-		<p>` + GOW_TITLE + ` is a small standalone wiki-system mean for lokal portable documentation.</p>
-		<p>When starting the application you supply a key which is your personal encryption key. All article content (not the title) is then encrypted using this key and thus only you (or the ones you hand the key to) may access the data.</p>
+		<p>` + GOW_TITLE + ` is a small standalone wiki-system mean for lokal portable documentation.
+		When starting the application you supply a key which is your personal encryption key. All article content (not the title) is then encrypted using this key and thus only you (or the ones you hand the key to) may access the data.</p>
+		<hr />
+		<h2>Articles</h2>
+		<p>`+ joinedArticlesList +`</p>
 	`
+	for _, v := range headers {
+		content = strings.Replace(content, v.Title, fmt.Sprintf("<a href='/article/%s'>%s</a>", v.Link, v.Title), -1)
+	}
+	MyHtml = MyHtml + content
 	MyHtml = MyHtml + GOW_FOOTER
 	t, _ = t.Parse(MyHtml)
 	t.Execute(w, nil)
@@ -259,7 +295,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	cfbdec := cipher.NewCFBDecrypter(c, commonIV)
 	plaintextCopy := make([]byte, article.PTL)
 	cfbdec.XORKeyStream(plaintextCopy, article.Content)
-	unsafe := blackfriday.MarkdownCommon(plaintextCopy)
+	unsafe := blackfriday.Run(plaintextCopy)
 	html := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
 	stringHtml := string(html)
 	for _, v := range headers {
@@ -269,8 +305,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	MyHtml := GOW_HEADER + `
 			<div class="go-back-link">
-				<a href="/edit/` + article.Link + `">Edit article</a>
-				<a href="/delete/` + article.Link + `">Delete article</a>
+				<a href="/edit/` + article.Link + `">Edit</a>
 			</div>
 			<h1>
 				` + article.Title + `
@@ -280,34 +315,6 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 				` + stringHtml + `
 			</p>
 		` + GOW_FOOTER
-	t, _ = t.Parse(MyHtml)
-	t.Execute(w, nil)
-}
-
-func listAllHandler(w http.ResponseWriter, r *http.Request) {
-	var (
-		tplArticles []string
-		articles    []article
-	)
-	records, _ := DB.ReadAll("articles")
-	for _, v := range records {
-		article := article{}
-		if err := json.Unmarshal([]byte(v), &article); err != nil {
-			fmt.Println("Error", err)
-		}
-		articles = append(articles, article)
-	}
-	sort.Sort(articlesDescending(articles))
-	for _, article := range articles {
-		tplArticles = append(tplArticles, fmt.Sprintf("<li><a href='/article/%s'>%s</a></li>", article.Link, article.Title))
-	}
-	joinedArticlesList := strings.Join(tplArticles, "")
-	t := template.New("listAllTpl")
-	MyHtml := GOW_HEADER + `
-	 	<ul>
-	 		` + joinedArticlesList + `
-	 	</ul>
-	 ` + GOW_FOOTER
 	t, _ = t.Parse(MyHtml)
 	t.Execute(w, nil)
 }
@@ -388,8 +395,9 @@ func editHandler(w http.ResponseWriter, r *http.Request) {
 
 	MyHtml := GOW_HEADER
 
-	MyHtml = MyHtml + `<div class="go-back-link">
-			<a href="/article/` + link + `">Abort</a>
+	MyHtml = MyHtml + `<div>
+			<a href="/article/` + link + `">Abort</a> - 
+			<a href="/delete/` + article.Link + `">Delete</a>
 		</div>
 	  <form name="edit" method="POST" action="">
   		<p>
@@ -460,15 +468,6 @@ func searchPostHandler(w http.ResponseWriter, r *http.Request) {
 	matches := fuzzy.RankFindFold(searchTerm, headerTitles)
 	t := template.New("searchTpl")
 	MyHtml := GOW_HEADER
-	MyHtml = MyHtml + `
-	  <form name="search" method="POST" action="">
-  		<p>
-			<input type="text" name="search_term" style="width:80%;padding:5px;" placeholder="What are you looking for?" pattern="[a-zA-Z0-9åäöÅÄÖ,_.-/\:+?! ]{2,250}" />
-			<button type="submit" name="submit" style="background:#53DF83;padding:6px 12px;border:0;">Search</button>
-		</p>
-	  </form>
-	  <hr />
-	  `
 	var articleList []string
 	counter := 1
 	for _, v := range matches {
